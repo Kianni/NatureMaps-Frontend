@@ -15,7 +15,7 @@ import {
   Trees,
 } from 'lucide-react';
 import { useApp } from '../../context/useApp';
-import { SourceMetadata } from '../../components/SourceMetadata';
+import { SourceMetadata, SourceDescription } from '../../components/SourceMetadata';
 import { IDENTIFICATION_NOTICE } from './constants';
 import type { FichaEspecie, FichaFuente, IdentificacionFicha } from './types';
 
@@ -65,9 +65,7 @@ function SourceCard({ source }: SourceCardProps) {
         </span>
         <div className="min-w-0 flex-1">
           <p className="text-body font-semibold text-ink">{source.name}</p>
-          {source.description && (
-            <p className="mt-0.5 text-small break-words text-muted">{source.description}</p>
-          )}
+          <SourceDescription description={source.description} provenance={source.provenance} />
           <SourceMetadata source={source.provenance} />
           {source.url && (
             <a

@@ -6,6 +6,24 @@ import en from './locales/en.json';
 
 const dictionaries = { es, va, en };
 
+export interface SourceDescriptionProps {
+  description: string;
+  provenance?: SourceReference;
+}
+
+/** Translate the application's municipal template, retaining other providers' credits verbatim. */
+export function SourceDescription({ description, provenance }: SourceDescriptionProps) {
+  const { lang } = useApp();
+  const provider = 'Ajuntament de València';
+  const isMunicipalTemplate = provenance?.scope === 'inventory'
+    && provenance.provider === provider
+    && description === es.inventoryAttribution.replace('{provider}', provider);
+  const text = isMunicipalTemplate
+    ? dictionaries[lang].inventoryAttribution.replace('{provider}', provider)
+    : description;
+  return text ? <p className="mt-0.5 text-small break-words text-muted">{text}</p> : null;
+}
+
 export interface SourceMetadataProps {
   /** Absent for sources returned by a backend predating UT 924. */
   source?: SourceReference;

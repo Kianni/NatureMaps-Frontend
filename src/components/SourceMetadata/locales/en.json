@@ -9,5 +9,6 @@
   "version": "Version",
   "inventory": "Inventory",
   "editorial": "Botanical information",
-  "image": "Image"
+  "image": "Image",
+  "inventoryAttribution": "Data source: {provider} – Dades Obertes. Fields normalized by Nature MAPS."
 }

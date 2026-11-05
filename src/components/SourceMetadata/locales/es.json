@@ -9,5 +9,6 @@
   "version": "Versión",
   "inventory": "Inventario",
   "editorial": "Información botánica",
-  "image": "Imagen"
+  "image": "Imagen",
+  "inventoryAttribution": "Fuente de los datos: {provider} – Dades Obertes. Campos normalizados por Nature MAPS."
 }

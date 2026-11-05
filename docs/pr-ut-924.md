@@ -8,6 +8,8 @@ Validación: build, lint y 198 tests del frontend; build y 23 tests del backend 
 
 Tras revisar la ficha, se evita que el panel tape los créditos de la foto y se elige un nombre legible cuando el inventario devuelve también duplicados con codificación dañada (Canària). Verificado con API real a 320/402 px, sin modificar la base de datos.
 
+La frase de atribución municipal de Nature MAPS también se traduce a es/va/en; se conservan el nombre de la entidad y los créditos originales de otros contenidos.
+
 Las ramas UT 921, 932, 933 y 924 se han combinado en los 24 órdenes posibles sin conflictos y con el mismo árbol final. Esta comprobación corresponde a los commits registrados en `docs/evidencias/ut-924/integration.json`; cambios posteriores en main u otras PR requieren revisarla.
 
 La combinación de las cuatro tareas también pasa build, lint y 222 tests.

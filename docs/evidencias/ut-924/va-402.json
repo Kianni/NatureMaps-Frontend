@@ -1,12 +1,12 @@
 {
-  "checkedAt": "2026-11-05T17:17:25.273Z",
+  "checkedAt": "2026-11-05T17:43:53.065Z",
   "apiSimulated": false,
   "width": 402,
   "species": "Phoenix canariensis",
   "language": "ca",
   "sourceCards": [
     {
-      "text": "Arbolado — Arbratge\n\nFuente de los datos: Ajuntament de València – Dades Obertes. Campos normalizados por Nature MAPS.\n\nInventari\n\nEntitat responsable: Ajuntament de València\n\nÚltima importació: 31 d’oct. 2026\n\nhttps://opendata.vlci.valencia.es/es/dataset/arbratge-arbolado",
+      "text": "Arbolado — Arbratge\n\nFont de les dades: Ajuntament de València – Dades Obertes. Camps normalitzats per Nature MAPS.\n\nInventari\n\nEntitat responsable: Ajuntament de València\n\nÚltima importació: 31 d’oct. 2026\n\nhttps://opendata.vlci.valencia.es/es/dataset/arbratge-arbolado",
       "date": "2026-10-31T18:43:15.147Z",
       "href": "https://opendata.vlci.valencia.es/es/dataset/arbratge-arbolado"
     },

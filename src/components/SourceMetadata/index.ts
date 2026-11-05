@@ -1,2 +1,2 @@
-export { SourceMetadata } from './SourceMetadata';
-export type { SourceMetadataProps } from './SourceMetadata';
+export { SourceMetadata, SourceDescription } from './SourceMetadata';
+export type { SourceMetadataProps, SourceDescriptionProps } from './SourceMetadata';
