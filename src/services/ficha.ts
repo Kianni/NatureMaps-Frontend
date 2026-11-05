@@ -1,6 +1,8 @@
 import { dictionaries } from '../i18n/strings';
 import type { Language } from '../types/language';
 import type { FichaEspecie, FichaFuente } from '../pages/FichaPlanta/types';
+import type { SourceReference } from '../types/sourceReference';
+import { sourceReferencesForView } from './sourceReferences';
 
 // Servicio de la ficha de planta (RF3, UT F06): conecta la pantalla con la API
 // del backend (NatureMaps-Backend) en lugar de leer datos de ejemplo de
@@ -65,6 +67,8 @@ export interface FichaListItem {
   profile: FichaProfile | null;
   enrichment: FichaEnrichment | null;
   image: FichaImageInfo | null;
+  /** Ausente con una API anterior a UT 924. */
+  provenance?: SourceReference[];
 }
 
 export interface FichaLocation {
@@ -192,6 +196,7 @@ export function fichaDesdeItemLista(item: FichaListItem, language: Language): Fi
       : item.enrichment
         ? [fuenteDesdeEnriquecimiento(item.enrichment, language)]
         : [],
+    ...sourceReferencesForView(item.provenance),
   };
 }
 

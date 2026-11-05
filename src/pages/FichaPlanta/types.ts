@@ -1,3 +1,5 @@
+import type { SourceReference } from '../../types/sourceReference';
+
 /**
  * Forma de una especie tal y como la pinta la ficha de planta.
  *
@@ -13,6 +15,8 @@ export interface FichaFuente {
   url: string;
   /** Icono contextual: 'landmark' para fuentes institucionales, 'search' para el resto. */
   icon: 'search' | 'landmark';
+  /** Metadatos estructurados de la API; no se deducen fechas en la vista. */
+  provenance?: SourceReference;
 }
 
 export interface FichaUbicacion {

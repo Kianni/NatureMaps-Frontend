@@ -38,3 +38,9 @@ Campo aditivo `provenance` en árboles y especies, con referencias:
 Las fechas de importación/consulta no se presentan como fecha de publicación o revisión del proveedor. La fecha del inventario de una especie es la última importación de sus ejemplares. Las referencias antiguas se normalizan al leerlas; no se inventan fechas ni entidades para URLs desconocidas. Las licencias y créditos actuales se conservan.
 
 El frontend nuevo acepta una API anterior. Para ver todos los metadatos debe estar desplegado también el backend de UT 924. La identificación efímera de Pl@ntNet conserva su atribución propia (UT 933); no se crean registros de observaciones.
+
+## Avance verificado
+
+- Etapa 1: completada, commit `7301a08` (plan y auditoría).
+- Etapa 2: completada, backend `bb8e67a`; build correcto, 23 pruebas correctas con base aislada.
+- Etapa 3: implementación completada; build y lint correctos, 194 pruebas correctas. Pendiente la comprobación visual y de integración de la etapa 4.

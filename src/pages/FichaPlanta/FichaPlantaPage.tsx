@@ -15,6 +15,7 @@ import {
   Trees,
 } from 'lucide-react';
 import { useApp } from '../../context/useApp';
+import { SourceMetadata } from '../../components/SourceMetadata';
 import { IDENTIFICATION_NOTICE } from './constants';
 import type { FichaEspecie, FichaFuente, IdentificacionFicha } from './types';
 
@@ -62,20 +63,21 @@ function SourceCard({ source }: SourceCardProps) {
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface-2 text-muted">
           <Icon size={18} aria-hidden="true" />
         </span>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="text-body font-semibold text-ink">{source.name}</p>
           {source.description && (
             <p className="mt-0.5 text-small break-words text-muted">{source.description}</p>
           )}
+          <SourceMetadata source={source.provenance} />
           {source.url && (
             <a
               href={source.url}
               target="_blank"
-              rel="noreferrer"
-              className="mt-1 inline-flex items-center gap-1 text-small font-medium break-all text-accent underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              rel="noopener noreferrer"
+              className="mt-1 inline-flex min-h-11 max-w-full items-center gap-1 text-small font-medium text-accent underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
-              {source.url}
-              <ExternalLink size={12} aria-hidden="true" />
+              <span className="min-w-0 break-all">{source.url}</span>
+              <ExternalLink size={12} className="shrink-0" aria-hidden="true" />
             </a>
           )}
         </div>
@@ -289,7 +291,7 @@ export function FichaPlantaPage({
         {sources.length > 0 ? (
           <ul className="mt-3 space-y-2">
             {sources.map((source) => (
-              <SourceCard key={source.name} source={source} />
+              <SourceCard key={`${source.url}:${source.provenance?.scope ?? ''}:${source.provenance?.dateType ?? ''}:${source.provenance?.date ?? ''}`} source={source} />
             ))}
           </ul>
         ) : (
