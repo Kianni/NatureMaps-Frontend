@@ -26,3 +26,5 @@ La última importación no es una fecha de revisión/publicación del Ayuntamien
 ## Verificación técnica
 
 Backend: `npm run build` y `npm run test:catalog` (PostgreSQL aislado). Frontend: `npm run build`, `npm run lint`, `npm test`. Las verificaciones de la base compartida usan únicamente SELECT/GET; no consumen cuota de Pl@ntNet.
+
+Resultado del 05/11/2026: backend 23 pruebas correctas; frontend 194; combinación con UT 921/932/933, 222. Build y lint correctos. Los 24 órdenes de integración no tienen conflictos para los commits registrados en `evidencias/ut-924/integration.json`. Los informes de aceptación indican expresamente qué se verificó automáticamente en navegador con la API real.

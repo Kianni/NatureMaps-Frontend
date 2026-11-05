@@ -43,4 +43,7 @@ El frontend nuevo acepta una API anterior. Para ver todos los metadatos debe est
 
 - Etapa 1: completada, commit `7301a08` (plan y auditoría).
 - Etapa 2: completada, backend `bb8e67a`; build correcto, 23 pruebas correctas con base aislada.
-- Etapa 3: implementación completada; build y lint correctos, 194 pruebas correctas. Pendiente la comprobación visual y de integración de la etapa 4.
+- Etapa 3: completada, frontend `58ac2c1`; build y lint correctos, 194 pruebas correctas.
+- Etapa 4: completada. Navegador con API real en es/en a 320 px y va a 402 px; entidades, fechas, créditos y enlaces correctos. GET de las 265 especies sin ninguna sin fuente completa. Los 24 órdenes de unión de UT 921/932/933/924 no presentan conflictos y producen el mismo árbol. La combinación pasa build, lint y 222 pruebas.
+
+Instrucciones manuales en [fuentes-informacion-ut-924.md](fuentes-informacion-ut-924.md); pruebas e informes en `pruebas-aceptacion-ut-924.md`; evidencias en `evidencias/ut-924/`. Los commits comprobados constan en `integration.json`; futuros cambios de otras ramas requieren volver a comprobar su compatibilidad. Se han preparado los textos de ambas PR; no se ha hecho push ni abierto ninguna PR de UT 924.
