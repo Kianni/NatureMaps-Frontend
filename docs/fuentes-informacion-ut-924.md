@@ -1,30 +1,71 @@
-# UT 924 — Fuentes de información
+# UT 924 — Источники информации: ручная проверка
 
-RF23, RNF6. Cambios separados en frontend y backend, ambos en `feat/ut-924-source-provenance`, desde sus respectivas `main`.
+Требования RF23, RNF6. Для полной проверки фронтэнд и бэкенд должны работать из ветки `feat/ut-924-source-provenance` в каждом репозитории. Проверить текущую ветку можно командой `git branch --show-current`.
 
-## Qué cambia
+## Что было сделано
 
-La ficha muestra en Fuentes la entidad responsable, la fecha con su significado (consulta, recuperación o última importación), la versión si consta y un enlace. También muestra la fuente municipal en especies sin texto editorial. Los créditos y licencias existentes se conservan.
+В разделе источников карточки растения теперь отображаются организация, дата с пояснением её значения, версия (если известна) и ссылка. Даже у вида без описания остаётся источник муниципального инвентаря. Авторство фотографий и лицензии сохраняются.
 
-El backend añade `provenance` a plantas, especies y ubicaciones. Reutiliza las columnas actuales y reconoce la fecha explícita de las referencias editoriales antiguas. No necesita migración ni volver a importar los datos. El detalle del contrato está en `docs/source-provenance.md` del backend y en [el plan](plan-ut-924.md).
+Бэкенд возвращает эти сведения в поле `provenance`. Используются существующие данные: миграции, повторный импорт и запуск `db:seed` для проверки не нужны. Для проверки реальных карточек требуется рабочее подключение бэкенда к базе.
 
-El frontend anterior sigue funcionando con el backend nuevo. El frontend nuevo admite la API anterior, pero entonces solo muestra los datos que esa API proporciona. Para revisar UT 924 completa hay que ejecutar las dos ramas. No depende de UT 921, 932 ni 933; sus etiquetas están en `src/components/SourceMetadata/locales/{es,va,en}.json`.
+## 1. Запустить приложение
 
-## Comprobación manual
+В отдельном терминале бэкенда:
 
-1. Backend: seleccionar la rama UT 924 y ejecutar `npm run dev` en `NatureMaps-Backend`.
-2. Frontend: seleccionar la rama UT 924 y ejecutar `npm run dev` en `NatureMaps-Frontend`. Si Vite ya está activo en este checkout, basta recargar el navegador.
-3. Abrir `http://localhost:5173/ficha`. Desplazarse a Fuentes de información.
-4. Comprobar que el inventario indica Ajuntament de València, una última importación real y un enlace al conjunto de datos.
-5. Pulsar el enlace: debe abrirse en otra pestaña. Volver a la ficha y navegar con Siguiente/Anterior.
-6. En una especie con texto o foto, comprobar sus fuentes y créditos. Las consultas editoriales del seed llevan 25/10/2026; las recuperaciones automáticas pueden tener otra fecha.
-7. Cambiar el idioma en Ajustes y volver a la ficha. Revisar las etiquetas en español, valenciano e inglés y en una ventana estrecha (320 px).
-8. Abrir `http://localhost:3000/trees?limit=1` y `/species?limit=1`: `provenance` debe contener entidad, enlace y fecha o versión. En `/trees/ID`, la fuente enlaza al ejemplar; en `/species/ID`, al conjunto de datos. Sustituir ID por un identificador devuelto por la lista.
+```powershell
+cd C:\Users\kirill\Desktop\PIN\NatureMaps-Backend
+npm.cmd run dev
+```
 
-La última importación no es una fecha de revisión/publicación del Ayuntamiento. No se inventa una versión. Las entidades o fechas desconocidas se indican como no disponibles. Los nombres propios y los textos de la fuente conservan su idioma original.
+В другом терминале запустить фронтэнд:
 
-## Verificación técnica
+```powershell
+cd C:\Users\kirill\Desktop\PIN\NatureMaps-Frontend
+npm.cmd run dev
+```
 
-Backend: `npm run build` y `npm run test:catalog` (PostgreSQL aislado). Frontend: `npm run build`, `npm run lint`, `npm test`. Las verificaciones de la base compartida usan únicamente SELECT/GET; no consumen cuota de Pl@ntNet.
+Если серверы уже работают из этих веток, достаточно обновить страницу. Адрес фронтэнда указан в терминале Vite; ниже предполагается порт 5173.
 
-Resultado del 05/11/2026: backend 23 pruebas correctas; frontend 194; combinación con UT 921/932/933, 222. Build y lint correctos. Los 24 órdenes de integración no tienen conflictos para los commits registrados en `evidencias/ut-924/integration.json`. Los informes de aceptación indican expresamente qué se verificó automáticamente en navegador con la API real.
+## 2. Проверить источники в карточке
+
+1. Открыть `http://127.0.0.1:5173/ficha`.
+2. Прокрутить до раздела `Fuentes de información` — «Источники информации».
+3. Найти источник `Arbolado — Arbratge`. Должны быть видны организация `Ajuntament de València`, подпись `Última importación` с датой и ссылка на муниципальный набор данных.
+4. Нажать ссылку. Она должна открыться в новой вкладке; карточка растения остаётся в исходной вкладке.
+5. Вернуться в приложение и переключить несколько видов кнопками `Siguiente` / `Anterior`. В каждой открытой карточке должен быть хотя бы один источник.
+6. Если есть источники Wikipedia или Wikimedia Commons, проверить организацию `Wikimedia Foundation`, дату и ссылку. При наличии фотографии должны сохраняться её автор и лицензия.
+
+Нормальный результат: организация, дата или версия и ссылка читаются; переходы между карточками работают. Пустого раздела источников у вида из текущего каталога быть не должно.
+
+## 3. Проверить языки и узкий экран
+
+1. В настройках `Ajustes` открыть выбор языка и сохранить английский. Вернуться к карточке и источникам.
+2. Проверить подписи `Responsible entity`, `Latest import`, `Retrieval` или `Consultation` — в зависимости от источника.
+3. Повторить для валенсийского: `Entitat responsable`, `Última importació`, `Recuperació` или `Consulta`.
+4. Вернуть испанский и убедиться, что подписи снова испанские.
+5. В инструментах разработчика браузера включить режим мобильного устройства и установить ширину 320 px. Проверить, что текст и длинные ссылки переносятся, ничего не обрезается и горизонтальная прокрутка не появляется.
+6. Проверить переход к ссылке клавишей Tab и её открытие клавишей Enter: фокус должен быть заметен, ссылка должна открываться в новой вкладке.
+
+Названия организаций, авторов, лицензии и исходные описания могут сохранять свой язык. Переключение языка переводит подписи интерфейса.
+
+## 4. Дополнительно проверить ответ бэкенда
+
+Это можно сделать прямо в браузере, без изменения базы данных:
+
+1. Открыть `http://localhost:3000/trees?limit=1`.
+2. У первого растения найти массив `provenance`. В нём должны быть `provider` (организация), `url` (ссылка), `date` (дата) и `dateType` (значение даты). `version` может быть `null`, когда версия неизвестна.
+3. Взять `id` этого растения и открыть `http://localhost:3000/trees/ID`, подставив число вместо `ID`. Ссылка источника должна вести к конкретному экземпляру в муниципальном инвентаре.
+4. Открыть `http://localhost:3000/species?limit=1`, взять `id` вида и открыть `http://localhost:3000/species/ID`. Здесь источник инвентаря ссылается на набор данных целиком; дата — последняя импортированная запись среди экземпляров этого вида.
+
+## Как понимать даты
+
+- `Última importación` / `imported` — дата импорта данных в NatureMaps, а не дата публикации или обновления у муниципалитета.
+- `Recuperación` / `retrieved` — дата получения текста или сведений об авторстве фотографии.
+- `Consulta` / `consulted` — дата консультации источника при подготовке описания. У существующих редакционных ссылок это 25/10/2026; другие источники могут иметь другую дату.
+- Версия не выдумывается. Если организация или дата неизвестны, интерфейс сообщает об отсутствии сведений.
+
+## Предыдущие автоматические проверки
+
+На 05/11/2026 прошли сборки, линтер фронтэнда и тесты: 23 в бэкенде, 194 во фронтэнде, 222 при объединении с UT 921/932/933. Проверены 24 порядка слияния для коммитов из `evidencias/ut-924/integration.json`.
+
+Это результаты автоматических проверок. Результат вашей ручной проверки нужно записать отдельно после выполнения шагов выше. Проверка источников использует только чтение данных и не расходует квоту Pl@ntNet.
