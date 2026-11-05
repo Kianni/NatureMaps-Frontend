@@ -140,12 +140,17 @@ export async function getSpeciesDetail(id: number, language: Language): Promise<
  * 'va' acepta también 'ca' y 'en' cae al español: no hay traducción aún.
  */
 export function commonNameFor(names: FichaNameInfo[], language: Language): string | null {
+  // El inventario puede traer a la vez un nombre correcto y otro con UTF-8
+  // deteriorado ("CanÃ ria"). Elegir una alternativa legible, sin adivinar ni
+  // reescribir los datos originales; si no la hay, la ficha usa el científico.
+  const readableNames = names.filter(({ name }) =>
+    name.trim() !== '' && !/\uFFFD|\u00C3[\u0080-\u00BF\s]|\u00C2[\u0080-\u00BF]/u.test(name));
   const preferidos: string[] = language === 'va' ? ['va', 'ca', 'es'] : language === 'en' ? ['en', 'es'] : ['es', 'ca'];
   for (const code of preferidos) {
-    const encontrado = names.find((entrada) => entrada.language === code);
+    const encontrado = readableNames.find((entrada) => entrada.language === code);
     if (encontrado) return encontrado.name;
   }
-  return names[0]?.name ?? null;
+  return readableNames[0]?.name ?? null;
 }
 
 /** Convierte el código de fuente del enriquecimiento ('WIKIPEDIA') en etiqueta

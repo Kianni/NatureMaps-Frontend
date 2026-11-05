@@ -139,7 +139,9 @@ export function FichaPlantaPage({
           </div>
         )}
         {species.photoCredit && (
-          <p className="absolute inset-x-0 bottom-0 bg-black/55 px-3 py-1 text-caption text-white/90">
+          // El panel siguiente sube 24 px sobre la foto (-mt-6). Los créditos
+          // terminan antes de ese solapamiento, también cuando ocupan varias líneas.
+          <p className="absolute inset-x-0 bottom-6 break-words bg-black/55 px-3 py-1 text-caption text-white/90">
             {t('ficha.photoCredit', { credit: species.photoCredit })}
           </p>
         )}
