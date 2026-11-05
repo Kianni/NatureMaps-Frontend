@@ -199,7 +199,7 @@
   "catalog.typeLabDesc": "Cinc direccions per a comparar en context",
   "catalog.colorLab": "Laboratori de color",
   "catalog.colorLabDesc": "Sis paletes naturals amb contrast WCAG",
-  "catalog.ghost": "Ghost",
+  "catalog.ghost": "Sense fons",
   "lab.loading": "Carregant el laboratori…",
   "lab.palette.actual.name": "Actual",
   "lab.palette.actual.tagline": "Verd bosc: la paleta que ja està en l’app",
