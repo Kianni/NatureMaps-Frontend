@@ -13,6 +13,8 @@ export interface FichaFuente {
   name: string;
   description: string;
   url: string;
+  /** Logo opcional de la fuente registrado en el catálogo del backend. */
+  logoUrl?: string | null;
   /** Icono contextual: 'landmark' para fuentes institucionales, 'search' para el resto. */
   icon: 'search' | 'landmark';
   /** Metadatos estructurados de la API; no se deducen fechas en la vista. */
