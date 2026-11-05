@@ -57,6 +57,12 @@ están en `docs/evidencias/ut-932/`; no se gastan 500 consultas reales.
 Se ha comprobado además el contrato 429/504 del servicio backend con `fetch`
 simulado y una clave ficticia, sin leer `.env` ni consultar Neon.
 
+Resultado del 05/11/2026: build y lint correctos, 196 tests pasan en UT 932
+aislada. Se han simulado los seis órdenes de squash-merge de UT 921, UT 932 y
+UT 933: sin conflictos y con el mismo árbol final. La versión conjunta pasa
+build, lint y 211 tests. El registro está en `docs/evidencias/ut-932/integration.json`.
+La comprobación corresponde a las ramas actuales y a `main` en `b99e4db`.
+
 Los cinco enunciados originales y sus informes, en texto sencillo y con sus
 plantillas separadas, están en [Pruebas de aceptación](pruebas-aceptacion-ut-932.md).
 El máximo de 500 procede del enunciado de UT 932; no se ha revisado un documento
