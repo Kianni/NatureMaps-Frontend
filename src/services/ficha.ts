@@ -1,5 +1,6 @@
 import { dictionaries } from '../i18n/strings';
 import type { Language } from '../types/language';
+import type { SpeciesGreenArea } from '../types/greenArea';
 import type { PlantPin } from '../types/plant';
 import type { FichaEspecie, FichaFuente } from '../pages/FichaPlanta/types';
 import { normalizarNombreCientifico } from '../utils/speciesName';
@@ -94,6 +95,8 @@ export interface FichaDataSource {
 
 /** Respuesta de GET /species/:id: ficha completa con ubicaciones reales. */
 export interface FichaDetail extends FichaListItem {
+  /** Parques y jardines con ejemplares de la especie (NM-08). Ausente en backends anteriores. */
+  greenAreas?: SpeciesGreenArea[];
   locations: {
     total: number;
     returned: number;
@@ -243,6 +246,7 @@ export function fichaDesdeDetalle(detail: FichaDetail, language: Language): Fich
         district: ubicacion.district ?? undefined,
       })),
     locationTotal: detail.locations.total,
+    ...(detail.greenAreas && detail.greenAreas.length > 0 ? { greenAreas: detail.greenAreas } : {}),
   };
 }
 
