@@ -1,5 +1,6 @@
 import { apiGet } from './api';
 import type { Mode } from '../types';
+import { repairTextEncoding } from '../i18n/format';
 
 // Plantas cercanas al usuario (GET /trees/nearby del backend).
 // El backend devuelve `distance` en metros (línea recta) y ordena de más
@@ -69,5 +70,15 @@ export async function fetchNearbyTrees(
     limit: String(params.limit ?? 100),
     lang: params.lang,
   });
-  return apiGet<NearbyResponse>(`/trees/nearby?${query.toString()}`, signal);
+  const response = await apiGet<NearbyResponse>(`/trees/nearby?${query.toString()}`, signal);
+  return {
+    ...response,
+    trees: response.trees.map((tree) => ({
+      ...tree,
+      commonName: tree.commonName ? repairTextEncoding(tree.commonName) : null,
+      displayName: repairTextEncoding(tree.displayName),
+      scientificName: tree.scientificName ? repairTextEncoding(tree.scientificName) : null,
+      reportedScientificName: tree.reportedScientificName ? repairTextEncoding(tree.reportedScientificName) : null,
+    })),
+  };
 }

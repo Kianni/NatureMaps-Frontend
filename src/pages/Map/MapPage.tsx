@@ -5,9 +5,10 @@ import 'leaflet/dist/leaflet.css';
 import { ChevronDown, ChevronUp, Landmark, Leaf, LocateFixed, MapPinOff, Search, Trees, X } from 'lucide-react';
 import { useApp } from '../../context/useApp';
 import { LocationPermissionPrompt, useLocationPermission } from '../../components/Location';
-import { formatDistance } from '../../i18n/format';
+import { formatDistance, repairTextEncoding } from '../../i18n/format';
 import { fetchNearbyTrees, readNearbyRadius } from '../../services/nearby';
 import { fetchPlantPins } from '../../services/plants';
+import { commonNameFor, getSpeciesLocations, getSpeciesDetail } from '../../services/ficha';
 import { groupNearbyPlants, metersBetween } from '../../services/plantGroups';
 import type { GroupArea } from '../../services/plantGroups';
 import type { PlantPin } from '../../types/plant';
@@ -62,7 +63,6 @@ function zoomToKeepUserAndPlaceVisible(map: L.Map, user: Coordinates, place: L.L
 const NEARBY_REFRESH_METERS = 200;
 // Círculo mínimo pintado al ir a un ejemplar suelto («Ver en el mapa»), para
 // que el punto sea localizable a simple vista.
-const FOCUS_RADIUS_METERS = 30;
 const POI_CACHE_TTL_MS = 5 * 60 * 1000;
 
 const poiAreaCache = new Map<string, { savedAt: number; items: Array<{id: number; name: string; lat: number; lon: number; distance: number}> }>();
@@ -73,6 +73,61 @@ function poiCacheKey(center: Coordinates, radius: number): string {
 
 function escapeHtml(value: string): string {
   return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+}
+
+function normalizeLocationName(value: string): string {
+  return repairTextEncoding(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase().trim();
+}
+
+/** Junta ejemplares con coordenadas prácticamente iguales en un único pin. */
+function groupSelectedLocations(pins: PlantPin[]): PlantPin[] {
+  const cells = new Map<string, PlantPin[]>();
+  for (const pin of pins) {
+    // Una celda de 0,0001° equivale aproximadamente a 8–11 metros en València.
+    const key = `${Math.round(pin.latitude * 10_000)}:${Math.round(pin.longitude * 10_000)}`;
+    const cell = cells.get(key);
+    if (cell) cell.push(pin);
+    else cells.set(key, [pin]);
+  }
+  return [...cells.values()].map((cell) => {
+    if (cell.length === 1) return cell[0];
+    return {
+      ...cell[0],
+      latitude: cell.reduce((total, pin) => total + pin.latitude, 0) / cell.length,
+      longitude: cell.reduce((total, pin) => total + pin.longitude, 0) / cell.length,
+      count: cell.length,
+    };
+  });
+}
+
+/** Marcadores canvas para lotes grandes de ubicaciones de una ficha. */
+function addSpeciesLocationMarkers(map: L.Map, pins: PlantPin[], onOpen?: (pin: PlantPin) => void): L.LayerGroup {
+  const layer = L.layerGroup();
+  const renderer = L.canvas({ padding: 0.5 });
+  const selection = getComputedStyle(document.documentElement).getPropertyValue('--color-selection').trim();
+  const surface = getComputedStyle(document.documentElement).getPropertyValue('--color-surface').trim();
+  for (const pin of pins) {
+    const marker = L.circleMarker([pin.latitude, pin.longitude], {
+      renderer,
+      radius: pin.count && pin.count > 1 ? Math.min(12, 7 + Math.log2(pin.count)) : 6,
+      weight: 2,
+      color: surface,
+      fillColor: selection,
+      fillOpacity: 0.9,
+    });
+    if (pin.count && pin.count > 1) {
+      marker.bindTooltip(String(pin.count), {
+        permanent: true,
+        direction: 'center',
+        className: 'selected-species-count',
+      });
+    } else {
+      marker.bindTooltip(pin.displayName, { direction: 'top', offset: L.point(0, -8) });
+    }
+    if (onOpen) marker.on('click', () => onOpen(pin));
+    marker.addTo(layer);
+  }
+  return layer.addTo(map);
 }
 
 export interface MapPageProps {
@@ -113,6 +168,7 @@ export function MapPage({ onOpenPlant }: MapPageProps = {}) {
   const searchAreaCircleRef = useRef<L.Circle | null>(null);
   const searchedPlaceMarkerRef = useRef<L.Marker | null>(null);
   const plantsLayerRef = useRef<L.LayerGroup | null>(null);
+  const selectedSpeciesLayerRef = useRef<L.LayerGroup | null>(null);
   const poisLayerRef = useRef<L.LayerGroup | null>(null);
   const locatedItemRef = useRef<L.Circle | null>(null);
   const groupAreaRef = useRef<L.Circle | null>(null);
@@ -127,10 +183,14 @@ export function MapPage({ onOpenPlant }: MapPageProps = {}) {
   const [searchError, setSearchError] = useState('');
   const [isSubmittingSearch, setIsSubmittingSearch] = useState(false);
   const [plantsFailed, setPlantsFailed] = useState(false);
+  const [focusMessage, setFocusMessage] = useState('');
+  const [focusLoading, setFocusLoading] = useState(false);
+  const [selectedSpeciesName, setSelectedSpeciesName] = useState('');
+  const [selectedSpeciesLocationCount, setSelectedSpeciesLocationCount] = useState(0);
+  const [hiddenSpeciesId, setHiddenSpeciesId] = useState<number | null>(null);
   // true cuando la consulta de cercanas no devuelve nada y el mapa sigue sin
   // plantas: se recurre al inventario global (UT 908) en lugar de dejarlo vacío.
   const [needsGlobalPlants, setNeedsGlobalPlants] = useState(false);
-  const [focusFailed, setFocusFailed] = useState(false);
   const [exploreOpen, setExploreOpen] = useState(false);
   const [chosenArea, setChosenArea] = useState(false);
   const [pois, setPois] = useState<Array<{id: number; name: string; lat: number; lon: number; distance: number}>>([]);
@@ -151,6 +211,7 @@ export function MapPage({ onOpenPlant }: MapPageProps = {}) {
   // ejemplares deja la lista vacía, pero el mapa conserva lo que ya mostraba.
   const [areaPlants, setAreaPlants] = useState<PlantPin[] | null>(null);
   const plantsAbortRef = useRef<AbortController | null>(null);
+  const speciesFocusRequestRef = useRef(0);
   const lastFetchCenterRef = useRef<Coordinates | null>(null);
   const {
     status: locationPermission,
@@ -371,6 +432,7 @@ export function MapPage({ onOpenPlant }: MapPageProps = {}) {
       searchAreaCircleRef.current = null;
       searchedPlaceMarkerRef.current = null;
       plantsLayerRef.current = null;
+      selectedSpeciesLayerRef.current = null;
       parksLayerRef.current = null;
       groupAreaRef.current = null;
     };
@@ -536,15 +598,6 @@ export function MapPage({ onOpenPlant }: MapPageProps = {}) {
     }).addTo(map);
   }, [clearGroupArea]);
 
-  /** Pinta el área y encuadra el mapa para verla entera. Solo lo usa «Ver en
-   * el mapa» desde la ficha, donde el cambio de vista es intencionado. */
-  const focusArea = useCallback((center: Coordinates, radius: number) => {
-    drawArea(center, radius);
-    const map = mapRef.current;
-    if (!map || !groupAreaRef.current) return;
-    map.fitBounds(groupAreaRef.current.getBounds(), { padding: [48, 48], maxZoom: 17 });
-  }, [drawArea]);
-
   // Capa de marcadores de plantas (render de la UT 908): se reconstruye cuando
   // llegan datos nuevos, cambia el idioma o se pasa de globales a cercanas.
   // Con distancia conocida (vía cercanas), cada marcador lleva su popup con
@@ -596,12 +649,6 @@ export function MapPage({ onOpenPlant }: MapPageProps = {}) {
       plantsLayerRef.current = addPlantMarkers(map, mapPlants, popupFor);
       return;
     }
-    if (!hasPosition) {
-      groupAreasRef.current = new Map();
-      memberAreasRef.current = new Map();
-      plantsLayerRef.current = addPlantMarkers(map, mapPlants, popupFor);
-      return;
-    }
     const { pins, areasById, areaByMemberId } = groupNearbyPlants(mapPlants);
     groupAreasRef.current = areasById;
     memberAreasRef.current = areaByMemberId;
@@ -614,8 +661,13 @@ export function MapPage({ onOpenPlant }: MapPageProps = {}) {
       }
       return onOpenPlant?.(pin) ?? false;
     };
-    plantsLayerRef.current = addPlantMarkers(map, pins, popupFor, handlePlantClick);
-  }, [plants, lang, hasPosition, clearGroupArea, drawArea, onOpenPlant, t, clusterByPark, greenAreas, navigate]);
+    plantsLayerRef.current = addPlantMarkers(
+      map,
+      hiddenSpeciesId === null ? pins : pins.filter((pin) => pin.speciesId !== hiddenSpeciesId),
+      popupFor,
+      handlePlantClick,
+    );
+  }, [plants, lang, hasPosition, clearGroupArea, drawArea, onOpenPlant, t, hiddenSpeciesId, clusterByPark, greenAreas, navigate]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -643,23 +695,68 @@ export function MapPage({ onOpenPlant }: MapPageProps = {}) {
   useEffect(() => {
     const verRaw = searchParams.get('verEspecie');
     if (verRaw === null || !/^\d+$/.test(verRaw)) return;
-    if (!hasPosition || plants === null) return;
+    const neighborhood = searchParams.get('barrio');
+    const requestId = ++speciesFocusRequestRef.current;
+    // El GPS puede seguir actualizando la ubicación, pero no debe recentrar el
+    // mapa mientras se está mostrando la selección solicitada desde la ficha.
+    followUserRef.current = false;
+    keepBothVisibleRef.current = false;
     setSearchParams({}, { replace: true });
-    const candidates = plants.filter((pin) => pin.speciesId === Number(verRaw));
-    if (candidates.length === 0) {
-      setFocusFailed(true);
-      return;
-    }
-    setFocusFailed(false);
-    const nearest = candidates.reduce((a, b) =>
-      (b.distance ?? Number.POSITIVE_INFINITY) < (a.distance ?? Number.POSITIVE_INFINITY) ? b : a,
-    );
-    const area = memberAreasRef.current.get(nearest.id);
-    focusArea(
-      area?.center ?? { latitude: nearest.latitude, longitude: nearest.longitude },
-      area?.radius ?? FOCUS_RADIUS_METERS,
-    );
-  }, [searchParams, plants, hasPosition, setSearchParams, focusArea]);
+    const speciesId = Number(verRaw);
+    selectedSpeciesLayerRef.current?.remove();
+    setFocusMessage('');
+    setSelectedSpeciesLocationCount(0);
+    setFocusLoading(true);
+    Promise.all([getSpeciesDetail(speciesId, lang), getSpeciesLocations(speciesId, lang)])
+      .then(([species, locations]) => {
+        if (requestId !== speciesFocusRequestRef.current) return;
+        selectedSpeciesLayerRef.current?.remove();
+        const name = commonNameFor(species.names, lang) ?? species.scientificName;
+        setSelectedSpeciesName(neighborhood ? `${name} · ${neighborhood}` : name);
+        setHiddenSpeciesId(speciesId);
+        const matchingLocations = neighborhood
+          ? locations.filter((location) => normalizeLocationName(location.neighborhood ?? location.district ?? '') === normalizeLocationName(neighborhood))
+          : locations;
+        const locationPins: PlantPin[] = matchingLocations.map((location) => ({
+          id: location.id, speciesId, displayName: name, scientificName: species.scientificName,
+          latitude: location.latitude, longitude: location.longitude, identified: true,
+        }));
+        setSelectedSpeciesLocationCount(locationPins.length);
+        if (locationPins.length === 0) {
+          setFocusMessage(neighborhood
+            ? t('map.noNeighborhoodLocations', { name: neighborhood })
+            : t('map.noSpeciesLocations'));
+          setFocusLoading(false);
+          return;
+        }
+        const map = mapRef.current;
+        if (!map) {
+          setFocusLoading(false);
+          return;
+        }
+        const pins = groupSelectedLocations(locationPins);
+        selectedSpeciesLayerRef.current = addSpeciesLocationMarkers(map, pins, onOpenPlant);
+        map.fitBounds(L.latLngBounds(locationPins.map((pin): L.LatLngTuple => [pin.latitude, pin.longitude])), { padding: [56, 56], maxZoom: 17 });
+        setFocusLoading(false);
+      })
+      .catch(() => {
+        if (requestId === speciesFocusRequestRef.current) {
+          setFocusMessage(t('map.speciesLocationsError'));
+          setFocusLoading(false);
+        }
+      });
+  }, [searchParams, setSearchParams, lang, onOpenPlant, t]);
+
+  const clearSpeciesSelection = () => {
+    speciesFocusRequestRef.current += 1;
+    selectedSpeciesLayerRef.current?.remove();
+    selectedSpeciesLayerRef.current = null;
+    setSelectedSpeciesName('');
+    setSelectedSpeciesLocationCount(0);
+    setHiddenSpeciesId(null);
+    setFocusLoading(false);
+    setFocusMessage('');
+  };
 
   // El área de búsqueda sigue el radio configurado en Ajustes.
   useEffect(() => {
@@ -986,12 +1083,24 @@ export function MapPage({ onOpenPlant }: MapPageProps = {}) {
             </p>
           )}
 
-          {(plantsFailed || focusFailed) && (
+          {(plantsFailed || focusMessage) && (
             <p className="mt-2 rounded-card bg-surface p-3 text-small text-muted shadow-float" role="status">
               {plantsFailed
                 ? t('map.plantsError')
-                : t('map.noNearbySpecies', { radius: formatDistance(radius, lang) })}
+                : focusMessage}
             </p>
+          )}
+          {selectedSpeciesName && (
+            <div className="mt-2 flex items-center justify-between gap-2 rounded-card bg-surface px-3 py-2 shadow-float" role="status">
+              <span className="min-w-0 truncate text-small text-ink">
+                {selectedSpeciesName}
+                <span className="ml-2 text-caption tabular-nums text-muted">{t('map.selectedSpeciesLocationCount', { count: selectedSpeciesLocationCount })}</span>
+              </span>
+              <button type="button" onClick={clearSpeciesSelection} className="shrink-0 rounded-control px-2 py-1 text-small font-semibold text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">{t('map.clearSpeciesSelection')}</button>
+            </div>
+          )}
+          {focusLoading && (
+            <p className="mt-2 rounded-card bg-surface p-3 text-small text-muted shadow-float" role="status">{t('map.loadingSpeciesLocations')}</p>
           )}
         </div>
       </div>
