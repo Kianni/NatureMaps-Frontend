@@ -7,7 +7,7 @@ export type AreaGeometry =
   | { type: 'MultiPolygon'; coordinates: GeoPosition[][][] };
 
 /** Secciones temáticas del contenido editorial, en el orden en que se muestran. */
-export const EDITORIAL_TOPICS = ['flora', 'parques', 'jardines', 'paisajismo'] as const;
+export const EDITORIAL_TOPICS = ['flora', 'parques', 'jardines', 'paisajismo','historia'] as const;
 export type EditorialTopic = (typeof EDITORIAL_TOPICS)[number];
 
 export function isEditorialTopic(value: unknown): value is EditorialTopic {

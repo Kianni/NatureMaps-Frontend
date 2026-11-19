@@ -164,7 +164,8 @@ const es = {
   'ficha.noFlowering': 'Floración no disponible',
   'ficha.noCuriosity': 'Dato curioso no disponible',
   'ficha.noSources': 'Fuentes no disponibles',
-
+  'ficha.history': 'Historia de València',
+  'ficha.historyDesc': 'Conoce la historia de la ciudad',
   'camera.checking': 'Comprobando permiso de cámara',
   'camera.promptTitle': 'Necesitamos tu cámara para reconocer plantas',
   'camera.promptDesc':
@@ -267,6 +268,7 @@ const es = {
   'discover.topic.parques': 'Parques',
   'discover.topic.jardines': 'Jardines',
   'discover.topic.paisajismo': 'Paisajismo',
+  'discover.topic.historia': 'Historia',
   'discover.loading': 'Cargando artículos…',
   'discover.error': 'No se han podido cargar los artículos.',
   'discover.empty': 'Aún no hay artículos',
@@ -509,6 +511,8 @@ const va: Dict = {
   'ficha.noFlowering': 'Floració no disponible',
   'ficha.noCuriosity': 'Dada curiosa no disponible',
   'ficha.noSources': 'Fonts no disponibles',
+  'ficha.history': 'Història de València',
+  'ficha.historyDesc': 'Coneix la història de la ciutat',
 
   'camera.checking': 'Comprovant el permís de càmera',
   'camera.promptTitle': 'Necessitem la teua càmera per a reconéixer plantes',
@@ -612,6 +616,7 @@ const va: Dict = {
   'discover.topic.parques': 'Parcs',
   'discover.topic.jardines': 'Jardins',
   'discover.topic.paisajismo': 'Paisatgisme',
+  'discover.topic.historia': 'Història',
   'discover.loading': 'Carregant articles…',
   'discover.error': 'No s’han pogut carregar els articles.',
   'discover.empty': 'Encara no hi ha articles',
@@ -851,6 +856,8 @@ const en: Dict = {
   'ficha.noFlowering': 'Flowering not available',
   'ficha.noCuriosity': 'Fun fact not available',
   'ficha.noSources': 'Sources not available',
+  'ficha.history': 'History of València',
+  'ficha.historyDesc': 'Explore the city’s history',
 
   'camera.checking': 'Checking camera permission',
   'camera.promptTitle': 'We need your camera to recognise plants',
@@ -954,6 +961,7 @@ const en: Dict = {
   'discover.topic.parques': 'Parks',
   'discover.topic.jardines': 'Gardens',
   'discover.topic.paisajismo': 'Landscaping',
+  'discover.topic.historia': 'History',
   'discover.loading': 'Loading articles…',
   'discover.error': 'The articles could not be loaded.',
   'discover.empty': 'No articles yet',
