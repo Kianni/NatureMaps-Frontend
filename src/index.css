@@ -16,6 +16,9 @@
   --color-warm-strong: oklch(0.49 0.09 65);
   --color-bloom: oklch(0.58 0.19 8);
   --color-bloom-strong: oklch(0.42 0.17 8);
+  /* Paradas patrocinadas: rosa/morado, distinto del verde y del ocre. */
+  --color-sponsor: oklch(0.62 0.17 330);
+  --color-sponsor-strong: oklch(0.43 0.16 330);
   --color-night: oklch(0.225 0.035 150);
 
   /* Texto y superficies */
@@ -262,6 +265,88 @@
 .route-start-icon span {
   inset: 1px;
   background: var(--color-location);
+}
+
+/* Numeración secuencial de las paradas de una ruta (PA 2856/2858). El número
+   va en una esquina y el distintivo de patrocinio en la opuesta para no taparlo. */
+.route-stop {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+}
+
+.route-stop__number {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  display: grid;
+  place-items: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 3px;
+  border: 2px solid var(--color-surface);
+  border-radius: 9999px;
+  background: var(--color-ink);
+  color: var(--color-surface);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* El icono base del POI se clona dentro de `.route-stop`, así que la regla
+   `.route-stop-icon span` ya no alcanza: se reaplica aquí con los mismos
+   colores que el mapa principal. */
+.route-stop--poi > span:first-child {
+  position: absolute;
+  inset: 4px;
+  border: 2px solid #8b5e20;
+  border-radius: 9999px;
+  background: #c58a31;
+  box-shadow: 0 1px 5px rgb(0 0 0 / 35%);
+}
+
+.route-stop-icon--sponsor {
+  background: transparent;
+  border: 0;
+}
+
+.route-stop-icon--sponsor span {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-sponsor-strong);
+  border-radius: 9999px;
+  background: var(--color-sponsor);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 45%);
+}
+
+.route-stop--sponsor > span:first-child {
+  position: absolute;
+  inset: 4px;
+  border: 2px solid var(--color-sponsor-strong);
+  border-radius: 9999px;
+  background: var(--color-sponsor);
+  box-shadow: 0 1px 5px rgb(0 0 0 / 35%);
+}
+
+.route-stop__sponsor {
+  position: absolute;
+  bottom: -5px;
+  left: -5px;
+  display: grid;
+  place-items: center;
+  width: 15px;
+  height: 15px;
+  border: 2px solid var(--color-surface);
+  border-radius: 9999px;
+  background: var(--color-warm-strong);
+  color: var(--color-surface);
+  font-size: 9px;
+  line-height: 1;
 }
 
 /* Plantas del mapa (F03.1): hoja + nombre, distintas de la ubicación y del lugar buscado. */

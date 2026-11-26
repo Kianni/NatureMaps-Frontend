@@ -5,7 +5,7 @@ import { apiGet } from './api';
 // tal cual, sin segundas peticiones ni motores de rutas en vivo.
 
 /** Contenido de las paradas de una ruta. */
-export type RouteTheme = 'botanica' | 'cultural' | 'mixta';
+export type RouteTheme = 'botanica' | 'cultural' | 'mixta' | 'sponsor';
 
 /** Forma que quedó el recorrido: anillo cerrado o línea si la zona no daba
  * para cerrarlo (el generador mantiene la longitud objetivo igualmente). */
@@ -14,7 +14,7 @@ export type RouteShape = 'circular' | 'lineal';
 /** Categoría de longitud: corta 1–3 km, media 4–7 km, larga 8+ km. */
 export type RouteLengthCategory = 'corta' | 'media' | 'larga';
 
-export type RouteStopKind = 'planta' | 'poi';
+export type RouteStopKind = 'planta' | 'poi' | 'sponsor';
 
 /** Parada del recorrido: planta del inventario o POI cultural. */
 export interface RouteStop {
@@ -26,6 +26,9 @@ export interface RouteStop {
   /** Especie del catálogo si la parada es una planta identificada; null en POIs
    * y plantas sin enlazar. Permite abrir su ficha real desde el mapa. */
   speciesId: number | null;
+  /** Nombre comercial y ubicación básica del patrocinador (solo `sponsor`). */
+  businessName?: string;
+  sponsorLocation?: string;
 }
 
 export interface RoutePoint {
